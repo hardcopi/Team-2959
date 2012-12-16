@@ -28,6 +28,8 @@
     <Folder Include="App_Resources\Android\drawable-ldpi">
       <Platform>Android</Platform>
     </Folder>
+    <Folder Include="scripts\jaydatamodules" />
+    <Folder Include="scripts\jaydataproviders" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="App_Resources\iOS\icon.png" />
@@ -51,7 +53,7 @@
     <Resource Include="App_Resources\Android\drawable-ldpi\icon.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="index.html" />
+    <Content Include="index1.html" />
     <Content Include="kendo\js\jquery.min.js" />
     <Content Include="kendo\js\kendo.mobile.min.js" />
     <Content Include="kendo\styles\images\ios-sprite.png" />
@@ -59,7 +61,37 @@
     <Content Include="kendo\styles\images\iconmasks.svg" />
     <Content Include="kendo\styles\images\android-sprite.png" />
     <Content Include="kendo\styles\kendo.mobile.all.min.css" />
+    <Content Include="scripts\datajs-1.0.3.min.js" />
     <Content Include="scripts\hello-world.js" />
+    <Content Include="scripts\jaydata.js" />
+    <Content Include="scripts\jaydata.min.js" />
+    <Content Include="scripts\jaydatamodules\deferred.js" />
+    <Content Include="scripts\jaydatamodules\errorhandler.js" />
+    <Content Include="scripts\jaydatamodules\formBinder.js" />
+    <Content Include="scripts\jaydatamodules\inMemory.js" />
+    <Content Include="scripts\jaydatamodules\kendo.js" />
+    <Content Include="scripts\jaydatamodules\knockout.js" />
+    <Content Include="scripts\jaydatamodules\qDeferred.js" />
+    <Content Include="scripts\jaydatamodules\sencha.js" />
+    <Content Include="scripts\jaydatamodules\template.js" />
+    <Content Include="scripts\jaydatamodules\validate.js" />
+    <Content Include="scripts\jaydataproviders\FacebookProvider.js" />
+    <Content Include="scripts\jaydataproviders\FacebookProvider.min.js" />
+    <Content Include="scripts\jaydataproviders\IndexedDbProvider.js" />
+    <Content Include="scripts\jaydataproviders\IndexedDbProvider.min.js" />
+    <Content Include="scripts\jaydataproviders\InMemoryProvider.js" />
+    <Content Include="scripts\jaydataproviders\InMemoryProvider.min.js" />
+    <Content Include="scripts\jaydataproviders\MongoDbProvider.js" />
+    <Content Include="scripts\jaydataproviders\MongoDbProvider.min.js" />
+    <Content Include="scripts\jaydataproviders\oDataProvider.js" />
+    <Content Include="scripts\jaydataproviders\oDataProvider.min.js" />
+    <Content Include="scripts\jaydataproviders\SqLiteProvider.js" />
+    <Content Include="scripts\jaydataproviders\SqLiteProvider.min.js" />
+    <Content Include="scripts\jaydataproviders\StormProvider.js" />
+    <Content Include="scripts\jaydataproviders\StormProvider.min.js" />
+    <Content Include="scripts\jaydataproviders\YQLProvider.js" />
+    <Content Include="scripts\jaydataproviders\YQLProvider.min.js" />
+    <Content Include="index.html" />
     <Content Include="styles\main.css" />
     <Content Include="cordova.ios.js">
       <Platform>iOS</Platform>
