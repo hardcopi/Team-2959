@@ -58,6 +58,7 @@
             switch (jayDataTypeName) {
                 case "$data.Blob":
                 case "$data.String":
+                case "$data.Guid":
                     return "string";
                 case "$data.Boolean":
                     return "boolean";
@@ -71,6 +72,26 @@
                     throw new Error("unimplemented: " + jayDataTypeName);
             }
         };
+        
+        function getKendoDefault(jayDataTypeName) {
+            jayDataTypeName = $data.Container.resolveName(jayDataTypeName);
+            switch (jayDataTypeName) {
+                case "$data.String":
+                    return "";
+                case "$data.Blob":
+                case "$data.Guid":
+                    return undefined;
+                case "$data.Boolean":
+                    return false;
+                case "$data.Integer":
+                case "$data.Number":
+                    return 0;
+                case "$data.Date":
+                    return new Date();
+                default:
+                    return undefined;
+            }
+        };
 
         var self = this;
         var result = {};
@@ -80,6 +101,7 @@
             .forEach(function (pd) {
                 result[pd.name] = {
                     type: getKendoTypeName(pd.type),
+                    defaultValue:getKendoDefault(pd.type),
                     nullable: pd.nullable,
                     editable: !pd.computed,
                     validation: {
@@ -96,7 +118,7 @@
             //    kendo.data.Model.apply(this, arguments);
             //}
         });
-        console.dir(result);
+        //console.dir(result);
         return returnValue;
     });
     
@@ -108,11 +130,11 @@
         };
         var TransportClass =  kendo.data.RemoteTransport.extend({
             init: function () {
-                console.log("init");
+                //console.log("init");
             },
             read: function (options) {
                 var query = self;
-                var _this = this;
+                //var _this = this;
                 reset();
                 if (options.data.filter) {
 
@@ -184,7 +206,8 @@
                 var q = query.skip(options.data.skip).take(options.data.take);
                 var ta = q.toArray();
                 var l = qcount.length();
-                jQuery.when(ta, l).then(function (items, total) {
+                jQuery.when(ta, l)
+                .then(function (items, total) {
                     //var result = items.map(function (item) { return item instanceof $data.Entity ? new model(item.initData) : item; });
                     
                     var result = items.map(function (item) {
@@ -224,7 +247,7 @@
                 var d = options.data;
                 if ("models" in d) {
                     d = d.models;
-                };
+                }
                 if (!(Array.isArray(d))) {
                     d = [d];
                 }
@@ -236,7 +259,7 @@
                     //var kendoItem = new modelItemClass(jayInstance.initData);
                     var data = jd.map(function (j) { return j.initData });
                     options.success({ "data": data });
-                });
+                }).fail($data.debug);
                 
             },
             update: function (options) {
@@ -263,7 +286,7 @@
                 var d = options.data;
                 if ("models" in d) {
                     d = d.models;
-                };
+                }
                 if (!(Array.isArray(d))) {
                     d = [d];
                 }
@@ -307,13 +330,12 @@
 
         var TransportClass = self.asKendoRemoteTransportClass(model);
         ds.transport = new TransportClass();
-
+        ds.batch = true;
         ds.schema = {
             model: model,
             data: "data",
             total: "total"
         };
-        console.log(ds);
-        return ds;
+        return new kendo.data.DataSource(ds);
     });
 })($data);

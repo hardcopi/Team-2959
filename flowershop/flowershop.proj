@@ -92,6 +92,7 @@
     <Content Include="scripts\jaydataproviders\YQLProvider.js" />
     <Content Include="scripts\jaydataproviders\YQLProvider.min.js" />
     <Content Include="index.html" />
+    <Content Include="scripts\mydatabase.js" />
     <Content Include="styles\main.css" />
     <Content Include="cordova.ios.js">
       <Platform>iOS</Platform>
