@@ -9,96 +9,106 @@
     <script src="scripts/datajs-1.0.3.min.js" type="text/javascript"></script>
 	<script src="scripts/jaydata.js" type="text/javascript"></script>
 	<script src="scripts/jaydatamodules/kendo.js" type="text/javascript"></script>
+    <script src="scripts/mydatabase.js" type="text/javascript"></script>
 
 	<link href="kendo/styles/kendo.mobile.all.min.css" rel="stylesheet" />
 	<link href="styles/main.css" rel="stylesheet" />
+    <style scoped>
+        #forms input:not([type=checkbox]):not([type=radio]),
+        #forms select,
+        #forms .k-dropdown
+        {
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            width: 50%;
+        }
+    </style>
 </head>
 <body>
-    <div data-role="view" id="tabstrip-profile" data-title="Profile" data-layout="mobile-tabstrip">
-    <ul data-role="listview" data-style="inset" data-type="group">
-        <li>Profile
-            <ul>
-                <li><h2>Carine <span>Callahan</span></h2><img src="../../content/mobile/overview/carine.jpg" /></li>
-                <li>Weekly average sales <span class="sales-up">$ 8,250</span></li>
-                <li>Monthly average sales <span class="sales-up">$ 32,000</span></li>
-            </ul>
-        </li>
-        <li>
-            Languages
-            <ul>
-                <li>English <span class="value">Native</span></li>
-                <li>Hungarian <span class="value">Advanced</span></li>
-                <li>French <span class="value">Advanced</span></li>
-                <li>Chinese <span class="value">Beginner</span></li>
-            </ul>
-        </li>
-        <li>
-            Sales commodity
-            <ul>
-                <li>Beverages</li>
-                <li>Condiments</li>
-                <li>Confections</li>
-                <li>Diary Products</li>
-                <li>Grains/Cereals</li>
-                <li>Meat/Poultry</li>
-                <li>Produce</li>
-                <li>Seafood</li>
-            </ul>
-        </li>
-        <li>
-            PC Skills
-            <ul>
-                <li>MS Word</li>
-                <li>MS Excel</li>
-                <li>MS Outlook</li>
-                <li>MS PowerPoint</li>
-                <li>MS Project</li>
-                <li>Windows (XP, Vista)</li>
-                <li>Internet</li>
-                <li>SAP - Sales and Marketing Module</li>
-                <li>MS Visual Studio</li>
-                <li>Adobe Acrobat</li>
-                <li>CorelDraw</li>
-            </ul>
-        </li>
-    </ul>
-</div>
 
-<div data-role="view" id="tabstrip-settings" data-title="Settings" data-layout="mobile-tabstrip">
-    <ul data-role="listview" data-style="inset" data-type="group">
-        <li>
-            Carine Callahan
-            <ul>
-                <li>Notify when online <input type="checkbox" data-role="switch" checked></li>
-                <li>Administrator <input type="checkbox" data-role="switch"></li>
-                <li>Access to stats <input type="checkbox" data-role="switch" checked></li>
+    <div data-role="view" id="tabstrip-forms" data-model="viewModel" data-title="Surveys" data-layout="mobile-tabstrip">
+        <ul id="listView"
+            data-role="listview"
+            data-style="inset"
+            data-template="template"
+            data-bind="source: myDatabase, events: { click: showSurvey }">
+        </ul>
+    </div>
+    
+	<script id="template" type="text/x-kendo-template">
+		<div class="info">
+		<h3>${ data.id }</h3>
+		</div>
+	</script>
+
+    <div data-role="view" id="tabstrip-form" data-model="viewModel" data-title="New survey" data-layout="mobile-tabstrip">
+        <header data-role="header">
+            <div data-role="navbar">
+                <a data-align="right" data-icon="add" data-role="button" data-bind="click: addSurvey">Save</a>
+            </div>
+        </header>
+        <form id="surveyForm">
+            <ul data-role="listview" data-style="inset">
+                <li>
+                    <select data-value-field="id" data-text-field="name" data-bind="source: Ages, value: survey.Age"></select>
+                    Your Age:
+                </li>
+                <li>
+                    <select data-value-field="id" data-text-field="name" data-bind="source: Continents, value: survey.Continent"></select>
+                    Visited continent:
+                </li>
+                <li>
+                    <select data-value-field="id" data-text-field="name" data-bind="source: Reasons, value: survey.Reason"></select>
+                    Reason of travel:
+                </li>
             </ul>
-        </li>
-    </ul>
-</div>
+        </form>
+    </div>
 
-<div data-role="layout" data-id="mobile-tabstrip">
-    <header data-role="header">
-        <div data-role="navbar">
-            <!--<a class="nav-button" data-align="left" data-role="backbutton">Back</a>-->
-            <span data-role="view-title"></span>
-            <a data-align="right" data-role="button" class="nav-button" href="#index">Index</a>
-        </div>
-    </header>
-
-    <p>TabStrip</p>
-
-    <div data-role="footer">
-        <div data-role="tabstrip">
-            <a href="#tabstrip-profile" data-icon="contacts">Profile
-            </a><a href="#tabstrip-settings" data-icon="settings">Settings</a>
+    <div data-role="layout" data-id="mobile-tabstrip">
+        <header data-role="header">
+            <div data-role="navbar">
+                <span data-role="view-title"></span>
+            </div>
+        </header>
+    
+        <p>TabStrip</p>
+        <div data-role="footer">
+            <div data-role="tabstrip">
+                <a href="#tabstrip-forms" data-icon="contacts">Forms</a>
+                <a href="#tabstrip-form" data-icon="contacts">Form</a>
+            </div>
         </div>
     </div>
-</div>
 
-    
     <script>
-        var app = new kendo.mobile.Application(document.body);
+        var app = null;
+        var viewModel = null;
+        var lctx = new mydatabase({name: 'local', databaseName: 'surveys'});
+        var rctx = new mydatabase({ name: 'oData', oDataServiceHost: 'https://open.jaystack.net/653bfc95-2548-4a0d-a150-090caa713a97/b8c99f96-980a-4cb8-b960-f5f7a88e68af/api/mydatabase' });
+        $.when(lctx.onReady(), rctx.onReady())
+        .then(function () {
+            // TODO fix this
+            viewModel = kendo.observable({
+                survey: undefined,
+                Ages: [ { id: 1, name: "under 18"}, { id: 2, name: "18-27"}, { id: 3, name: "28-44"}, 
+                        { id: 4, name: "45-62"}, { id: 5, name: "Over 63" } ],
+                Continents: [ { id: 1, name: "Europe"},{ id: 2, name: "North America"},{ id: 3, name: "South America" },
+                              { id: 4, name: "Asia"}, { id: 5, name: "Africa"}, {id: 6, name: "Australia"}],
+                Reasons: [ { id: 1, name: "Vacation"}, { id: 2, name: "Business"},{ id: 3, name: "Family/friend visit"},{ id: 4, name: "Other"}],
+                addSurvey: function() {
+                    this.myDatabase.add( this.survey );
+                    this.myDatabase.sync();
+                },
+                showSurvey: function() {
+                    survey = this;
+                    app.navigate('#tabstrip-form');
+                },
+                myDatabase: lctx.TravelPreferences.asKendoDataSource()
+            });
+            app = new kendo.mobile.Application(document.body);
+        });
     </script>
 </body>
 </html>
+                        
