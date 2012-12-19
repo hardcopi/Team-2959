@@ -2,10 +2,11 @@
 (function (global, $data, undefined) {
 
     $data.define('TravelPreference', {
-        'id': { 'key': true, 'required': true, 'type': 'Edm.Guid', 'computed': false, 'nullable': false }, // Edm.Int32 'Edm.Guid'
-        'Age': Number,
-        'Continent': String,
-        'Reason': String,
+        'id': { 'key': true, 'required': true, 'type': 'Edm.Guid', 'computed': false, 'nullable': false },
+        'Name': { 'type': String, 'required': true },
+        'Age': { 'type': Number, 'required': true, minValue: 1 },
+        'Continent': { 'type': Number, 'required': true },
+        'Reason': { 'type': Number, 'required': true },
         'Creation': Date,
         'Sent': Boolean
     });

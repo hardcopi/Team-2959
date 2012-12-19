@@ -27,38 +27,49 @@
 <body>
 
     <div data-role="view" id="tabstrip-forms" data-model="viewModel" data-title="Surveys" data-layout="mobile-tabstrip">
+        <header data-role="header">
+            <div data-role="navbar">
+                <a data-align="right" data-icon="add" data-role="button" data-bind="click: newSurvey">New</a>
+            </div>
+        </header>
         <ul id="listView"
             data-role="listview"
             data-style="inset"
             data-template="template"
-            data-bind="source: myDatabase, events: { click: showSurvey }">
+            data-bind="source: myDatabase, events: { click: editSurvey }">
         </ul>
     </div>
     
 	<script id="template" type="text/x-kendo-template">
 		<div class="info">
-		<h3>${ data.id }</h3>
+		<h3>${ data.Name }</h3>
 		</div>
 	</script>
 
     <div data-role="view" id="tabstrip-form" data-model="viewModel" data-title="New survey" data-layout="mobile-tabstrip">
         <header data-role="header">
             <div data-role="navbar">
-                <a data-align="right" data-icon="add" data-role="button" data-bind="click: addSurvey">Save</a>
+                <button data-align="left" data-icon="add" data-role="button" data-bind="click: cancelSurvey">Save1</button>
+                <button data-align="right" data-icon="add" data-role="button" data-bind="click: addSurvey, visible: isNew, enabled: hasChanges">Add</button>
+                <button data-align="right" data-icon="add" data-role="button" data-bind="click: saveSurvey, visible: isNotNew, enabled: hasChanges">Save</button>
             </div>
         </header>
         <form id="surveyForm">
             <ul data-role="listview" data-style="inset">
                 <li>
-                    <select data-value-field="id" data-text-field="name" data-bind="source: Ages, value: survey.Age"></select>
+                    <label for="fullname" class="required">Your Name</label>
+                    <input  data-bind="value: name" type="text" placeholder="name" required validationMessage="Cannot be empty" />
+                </li>
+                <li>
+                    <select data-value-field="id" data-text-field="name" data-bind="source: Ages, value: survey.Age, events: { change: change }" required min=1></select>
                     Your Age:
                 </li>
                 <li>
-                    <select data-value-field="id" data-text-field="name" data-bind="source: Continents, value: survey.Continent"></select>
+                    <select data-value-field="id" data-text-field="name" data-bind="source: Continents, value: survey.Continent, events: { change: change }" required></select>
                     Visited continent:
                 </li>
                 <li>
-                    <select data-value-field="id" data-text-field="name" data-bind="source: Reasons, value: survey.Reason"></select>
+                    <select data-value-field="id" data-text-field="name" data-bind="source: Reasons, value: survey.Reason, events: { change: change }" required></select>
                     Reason of travel:
                 </li>
             </ul>
@@ -85,26 +96,52 @@
         var app = null;
         var viewModel = null;
         var lctx = new mydatabase({name: 'local', databaseName: 'surveys'});
-        var rctx = new mydatabase({ name: 'oData', oDataServiceHost: 'https://open.jaystack.net/653bfc95-2548-4a0d-a150-090caa713a97/b8c99f96-980a-4cb8-b960-f5f7a88e68af/api/mydatabase' });
+        var rctx = new mydatabase({name: 'oData', oDataServiceHost: 'https://open.jaystack.net/653bfc95-2548-4a0d-a150-090caa713a97/b8c99f96-980a-4cb8-b960-f5f7a88e68af/api/mydatabase' });
         $.when(lctx.onReady(), rctx.onReady())
         .then(function () {
             // TODO fix this
+            var validator = $("#surveyForm").kendoValidator().data("kendoValidator");
             viewModel = kendo.observable({
-                survey: undefined,
-                Ages: [ { id: 1, name: "under 18"}, { id: 2, name: "18-27"}, { id: 3, name: "28-44"}, 
+                name: null,
+                myDatabase: lctx.TravelPreferences.asKendoDataSource(),
+                survey:  null, // new viewModel.myDatabase.schema.model(), //$("TravelPreference").createInstance().asKendoObservable(), //new lctx.TravelPreferences.asKendoObservable(), // new kendo.data.ObservableObject({}),
+                Ages: [ { id: undefined, name: "---" }, { id: 1, name: "under 18"}, { id: 2, name: "18-27"}, { id: 3, name: "28-44"}, 
                         { id: 4, name: "45-62"}, { id: 5, name: "Over 63" } ],
-                Continents: [ { id: 1, name: "Europe"},{ id: 2, name: "North America"},{ id: 3, name: "South America" },
+                Continents: [ { id: undefined, name: "---" },{ id: 1, name: "Europe"},{ id: 2, name: "North America"},{ id: 3, name: "South America" },
                               { id: 4, name: "Asia"}, { id: 5, name: "Africa"}, {id: 6, name: "Australia"}],
-                Reasons: [ { id: 1, name: "Vacation"}, { id: 2, name: "Business"},{ id: 3, name: "Family/friend visit"},{ id: 4, name: "Other"}],
+                Reasons: [ { id: undefined, name: "---" },{ id: 1, name: "Vacation"}, { id: 2, name: "Business"},{ id: 3, name: "Family/friend visit"},{ id: 4, name: "Other"}],
                 addSurvey: function() {
-                    this.myDatabase.add( this.survey );
-                    this.myDatabase.sync();
+                    if (validator.validate()) {
+                        viewModel.myDatabase.add( viewModel.survey );
+                        viewModel.myDatabase.sync();
+                        viewModel.set('hasChanges', false);
+                    }
                 },
-                showSurvey: function() {
-                    survey = this;
+                saveSurvey: function() {
+                    if (validator.validate()) {
+                        viewModel.myDatabase.sync();
+                        viewModel.set('hasChanges', false);
+                    }
+                },
+                newSurvey: function(e) {
+                    viewModel.survey = new viewModel.myDatabase.options.schema.model(), // new kendo.data.ObservableObject({}); // new lctx.TravelPreferences.asKendoModel(); // new kendo.data.ObservableObject({});
+                    viewModel.set('hasChanges', false);
+                    viewModel.set('isNew',true);
+                    viewModel.set('isNotNew',false);
                     app.navigate('#tabstrip-form');
                 },
-                myDatabase: lctx.TravelPreferences.asKendoDataSource()
+                editSurvey: function(e) {
+                    viewModel.survey = e.dataItem;
+                    viewModel.set('isNew',false);
+                    viewModel.set('isNotNew',true);
+                    app.navigate('#tabstrip-form');
+                },
+                isNew: function() { return viewModel.survey.id == undefined;},
+                isNotNew: function() { return !viewModel.isNew();},
+                hasChanges: false,
+                change: function() {
+                    viewModel.set('hasChanges', true);
+                }
             });
             app = new kendo.mobile.Application(document.body);
         });
