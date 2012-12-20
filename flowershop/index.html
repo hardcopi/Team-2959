@@ -38,6 +38,7 @@
             data-template="template"
             data-bind="source: myDatabase, events: { click: show }">
         </ul>
+        <span id="norecord">No record found</span>
     </div>
     
 	<script id="template" type="text/x-kendo-template">
@@ -95,8 +96,15 @@
         .then(function () {
             // TODO fix this
             var validator = $("#surveyForm").kendoValidator().data("kendoValidator");
+            var dataSource = localDatabase.TravelPreferences.asKendoDataSource();
+            dataSource.bind("change", function() {
+                if (dataSource.view().length > 0)
+                    $('#norecord').hide();
+                else
+                    $('#norecord').show();
+            });
             viewModel = kendo.observable({
-                myDatabase: localDatabase.TravelPreferences.asKendoDataSource(),
+                myDatabase: dataSource,
                 survey:  null,
                 Ages: [ { id: 0, name: "" }, { id: 1, name: "under 18"}, { id: 2, name: "18-27"}, { id: 3, name: "28-44"}, 
                         { id: 4, name: "45-62"}, { id: 5, name: "Over 63" } ],
