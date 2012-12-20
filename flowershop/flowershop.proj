@@ -53,8 +53,6 @@
     <Resource Include="App_Resources\Android\drawable-ldpi\icon.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="editing.html" />
-    <Content Include="index1.html" />
     <Content Include="kendo\js\jquery.min.js" />
     <Content Include="kendo\js\jquery.min.js.orig" />
     <Content Include="kendo\js\kendo.mobile.min.js" />

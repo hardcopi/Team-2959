@@ -57,8 +57,8 @@
         </header>
         <ul data-role="listview" data-style="inset">
             <li>Name <span class="value" data-bind="text: survey.Name"></span></li>
-            <li>Age <span class="value" data-bind="text: ageText"></span></li>
-            <li>Reason <span class="value" data-bind="text: reasonText"></span></li>
+            <li>Age <span class="value" data-bind="text: survey.AgeGroup"></span></li>
+            <li>Reason <span class="value" data-bind="text: survey.Reason"></span></li>
         </ul>
     </div>
 
@@ -77,11 +77,11 @@
                     Your Name:
                 </li>
                 <li>
-                    <select data-value-field="id" data-text-field="name" data-bind="source: AgesGroup, value: survey.Age, events: { change: change }" min=1></select>
+                    <select data-value-field="name" data-text-field="name" data-bind="source: AgeGroups, value: survey.AgeGroup, events: { change: change }" min=1></select>
                     Your Age:
                 </li>
                 <li>
-                    <select data-value-field="id" data-text-field="name" data-bind="source: Reasons, value: survey.Reason, events: { change: change }" min=1></select>
+                    <select data-value-field="name" data-text-field="name" data-bind="source: Reasons, value: survey.Reason, events: { change: change }" min=1></select>
                     Reason of travel:
                 </li>
             </ul>
@@ -106,11 +106,9 @@
             viewModel = kendo.observable({
                 myDatabase: dataSource,
                 survey:  null,
-                AgesGroup: [ { id: 0, name: "" }, { id: 1, name: "under 18"}, { id: 2, name: "18-27"}, { id: 3, name: "28-44"}, 
+                AgeGroups: [ { id: 0, name: "" }, { id: 1, name: "under 18"}, { id: 2, name: "18-27"}, { id: 3, name: "28-44"}, 
                         { id: 4, name: "45-62"}, { id: 5, name: "Over 63" } ],
                 Reasons: [ { id: 0, name: "" },{ id: 1, name: "Vacation"}, { id: 2, name: "Business"},{ id: 3, name: "Family/friend visit"},{ id: 4, name: "Other"}],
-                ageText: function() { return viewModel.AgesGroup[viewModel.survey.Age].name; },
-                reasonText: function() { return viewModel.Reasons[viewModel.survey.Reason].name; },
                 add: function() {
                     if (validator.validate() && viewModel.hasChanges) { // && viewModel.hasChanges needed because it is called multiple times
                         viewModel.myDatabase.add( viewModel.survey );
@@ -132,7 +130,7 @@
                 newSurvey: function(e) {
                     if (viewModel.survey) return; // needed because it is called multiple times
                     viewModel.set('survey',new viewModel.myDatabase.options.schema.model()),
-                    viewModel.set('survey.Age', ""),
+                    viewModel.set('survey.AgeGroup', ""),
                     viewModel.set('survey.Reason', ""),
                     viewModel.set('hasChanges', false);
                     viewModel.set('isNew',true);
