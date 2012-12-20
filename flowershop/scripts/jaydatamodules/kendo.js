@@ -221,14 +221,14 @@
                 var _this = this;
                 if (options.data.filter) {
 
-                    console.log(options.data.filter);
+                    //console.log(options.data.filter);
 
                     var filter = "";
                     var thisArg = {};
                     options.data.filter.filters.forEach(function (f, index) {
                         if (index > 0) { filter += options.data.filter.logic == "or" ? " || " : " && "; }
 
-                        console.log(filter, f);
+                        //console.log(filter, f);
 
                         switch (f.operator) {
                             case 'eq':
@@ -306,9 +306,6 @@
             },
             create: function (options, model) {
 
-                //ctx.addMany()
-                console.log("create");
-                console.dir(arguments);
                 if (model.length > 1) {
                     var modelItems = [];
                     model.forEach(function (modelItem) {
@@ -323,11 +320,11 @@
                         options.success({ data: data });
                     }).fail(function () {
                         console.log("error in create");
-                        alert("error in create");
+                        options.error({}, arguments);
                         ctx.stateManager.reset();
                     });
                 } else {
-                    console.log("save single");
+                    //console.log("save single");
                     model[0]
                         .innerInstance()
                         .save()
@@ -337,8 +334,8 @@
                 }
             },
             update: function (options, model) {
-                console.log("update");
-                console.dir(arguments);
+                //console.log("update");
+                //console.dir(arguments);
 
                 if (model.length > 1) {
                     var items = model.map(function (item) { return item.innerInstance() });
@@ -357,23 +354,9 @@
                         options.success();
                     }).fail(function () { alert("error in update") });
                 }
-                //ctx.saveChanges().then(function () {
-                //    //options.data.FullName = 'a';
-                //    options.success(options.data);
-                //}).fail(function () {
-                //    options.error("error");
-                //});
-                //self.toArray(function () {
-                //});
-                //return false;
             },
 
             destroy: function (options, model) {
-                //alert("!");
-
-                console.log("delete");
-                console.dir(arguments);
-                //if (mo)
                 if (model.length > 1) {
                     model.forEach(function (item) {
                         ctx.remove(item.innerInstance());
@@ -392,26 +375,6 @@
 
                     });
                 }
-                //return;
-                //var jayType = self.defaultType;
-                //var d = options.data;
-                //if ("models" in d) {
-                //    d = d.models;
-                //};
-                //if (!(Array.isArray(d))) {
-                //    d = [d];
-                //}
-                //var jd = d.map(function (data) { return new jayType(data); });
-                //jd.forEach(function (j) {
-                //    ctx.remove(j);
-                //});
-                //ctx.saveChanges()
-                //    .then(function () {
-                //        options.success({});
-                //    })
-                //    .fail(function () {
-                //        options.error();
-                //    });
             },
             setup: function () {
                 console.log("setup");

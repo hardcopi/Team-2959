@@ -3,9 +3,9 @@
 
     $data.define('TravelPreference', {
         'id': { 'key': true, 'type': 'int', 'computed': true },
-        'Name': { 'type': String },
-        'Age': { 'type': String },
-        'Reason': { 'type': String },
+        'Name': { 'type': Number },
+        'Age': { 'type': Number },
+        'Reason': { 'type': Number },
         'Creation': Date,
         'Sent': Boolean
     });
