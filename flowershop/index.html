@@ -57,7 +57,6 @@
         <ul data-role="listview" data-style="inset">
             <li>Name <span class="sales-up" data-bind="text: survey.Name"></span></li>
             <li>Age <span class="sales-up" data-bind="text: survey.Age"></span></li>
-            <!--<li>Continent <span class="sales-up" data-bind="text: survey.Continent"></span></li>-->
             <li>Reason <span class="sales-up" data-bind="text: survey.Reason"></span></li>
         </ul>
     </div>
@@ -80,12 +79,6 @@
                     <select data-value-field="name" data-text-field="name" data-bind="source: Ages, value: survey.Age, events: { change: change }" required></select>
                     Your Age:
                 </li>
-                <!--
-                <li>
-                    <select data-value-field="name" data-text-field="name" data-bind="source: Continents, value: survey.Continent, events: { change: change }" required></select>
-                    Visited continent:
-                </li>
-                -->
                 <li>
                     <select data-value-field="name" data-text-field="name" data-bind="source: Reasons, value: survey.Reason, events: { change: change }" required></select>
                     Reason of travel:
@@ -97,18 +90,16 @@
     <script>
         var app = null;
         var viewModel = null;
-        var lctx = new mydatabase({name: 'local', databaseName: 'surveys'});
-        $.when($.ready, lctx.onReady())
+        var localDatabase = new mydatabase({name: 'local', databaseName: 'surveys'});
+        $.when($.ready, localDatabase.onReady())
         .then(function () {
             // TODO fix this
             var validator = $("#surveyForm").kendoValidator().data("kendoValidator");
             viewModel = kendo.observable({
-                myDatabase: lctx.TravelPreferences.asKendoDataSource(),
+                myDatabase: localDatabase.TravelPreferences.asKendoDataSource(),
                 survey:  null,
                 Ages: [ { id: 0, name: "" }, { id: 1, name: "under 18"}, { id: 2, name: "18-27"}, { id: 3, name: "28-44"}, 
                         { id: 4, name: "45-62"}, { id: 5, name: "Over 63" } ],
-                Continents: [ { id: 0, name: "" },{ id: 1, name: "Europe"},{ id: 2, name: "North America"},{ id: 3, name: "South America" },
-                              { id: 4, name: "Asia"}, { id: 5, name: "Africa"}, {id: 6, name: "Australia"}],
                 Reasons: [ { id: 0, name: "" },{ id: 1, name: "Vacation"}, { id: 2, name: "Business"},{ id: 3, name: "Family/friend visit"},{ id: 4, name: "Other"}],
                 add: function() {
                     if (validator.validate() && viewModel.hasChanges) { // && viewModel.hasChanges needed because it is called multiple times

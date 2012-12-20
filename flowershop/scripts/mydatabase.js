@@ -2,10 +2,9 @@
 (function (global, $data, undefined) {
 
     $data.define('TravelPreference', {
-        'id': { 'key': true, 'required': true, 'type': 'Edm.Guid', 'computed': false, 'nullable': false },
+        'id': { 'key': true, 'type': 'int', 'computed': true },
         'Name': { 'type': String },
         'Age': { 'type': String },
-        'Continent': { 'type': String },
         'Reason': { 'type': String },
         'Creation': Date,
         'Sent': Boolean
@@ -16,9 +15,7 @@
     });
  
     $data('TravelPreference').addEventListener('beforeCreate', function (source, pref) {
-        if (!pref.id) {
-            pref.id = $data.createGuid();
-            pref.Creation = new Date();
-        }
+        pref.Creation = new Date();
     });
+    
 })(window, $data);
