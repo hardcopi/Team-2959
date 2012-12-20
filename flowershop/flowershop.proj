@@ -53,10 +53,12 @@
     <Resource Include="App_Resources\Android\drawable-ldpi\icon.png" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="editing.html" />
     <Content Include="index1.html" />
     <Content Include="kendo\js\jquery.min.js" />
+    <Content Include="kendo\js\jquery.min.js.orig" />
     <Content Include="kendo\js\kendo.mobile.min.js" />
-    <Content Include="kendo\js\kendo.mobile.min.js.org" />
+    <Content Include="kendo\js\kendo.mobile.min.js.orig" />
     <Content Include="kendo\styles\images\back.png" />
     <Content Include="kendo\styles\images\ios-sprite.png" />
     <Content Include="kendo\styles\images\icons.png" />
@@ -70,12 +72,12 @@
     <Content Include="scripts\hello-world.js" />
     <Content Include="scripts\jaydata.js" />
     <Content Include="scripts\jaydata.min.js" />
-    <Content Include="scripts\jaydatamodules\kendo.js.orig" />
+    <Content Include="scripts\jaydatamodules\kendo.js" />
     <Content Include="scripts\jaydatamodules\deferred.js" />
     <Content Include="scripts\jaydatamodules\errorhandler.js" />
     <Content Include="scripts\jaydatamodules\formBinder.js" />
     <Content Include="scripts\jaydatamodules\inMemory.js" />
-    <Content Include="scripts\jaydatamodules\kendo.js" />
+    <Content Include="scripts\jaydatamodules\kendo.js.new" />
     <Content Include="scripts\jaydatamodules\knockout.js" />
     <Content Include="scripts\jaydatamodules\qDeferred.js" />
     <Content Include="scripts\jaydatamodules\sencha.js" />

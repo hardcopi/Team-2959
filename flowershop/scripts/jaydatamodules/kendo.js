@@ -19,7 +19,7 @@
                 case "$data.Date":
                     return "date";
                 default:
-                    return 'string'; // TODO ???
+                    return 'object'; // TODO ???
                     throw new Error("unimplemented: " + jayDataTypeName);
             }
         };
@@ -33,7 +33,7 @@
             memberDefinitions
                 .getPublicMappedProperties()
                 .forEach(function (pd) {
-                    if (pd.dataType !== "Array" && !(pd.inverseProperty)) {
+                    //if (pd.dataType !== "Array" && !(pd.inverseProperty)) {
                         fields[pd.name] = {
                             type: getKendoTypeName(pd.type),
                             nullable: false,
@@ -43,7 +43,7 @@
                                 required: pd.required
                             }
                         }
-                    };
+                    //};
                 });
 
 
@@ -53,11 +53,32 @@
                 init: function (data) {
                     //console.dir(arguments);
                     var jayInstance = data instanceof type ? data : new type(data);
+
                     var seed = jayInstance.initData;
+                    var feed = {};
+                    //TODO create precompiled strategy
+                    for (var j in seed) {
+                        var md = type.getMemberDefinition(j);
+                        var seedValue = seed[j];
+                        if (seedValue instanceof $data.Entity) {
+                            var kendoInstance = seedValue.asKendoObservable();
+                            feed[j] = kendoInstance;
+                        } else if (md && md.type === "Array") {
+                            var jayType = $data.Container.resolveType(md.elementType);
+                            var kendoType = jayType.asKendoModel();
+                            var feedValue = new kendo.data.ObservableArray(seed[j], kendoType);
+                            feed[j] = feedValue;
+                        } else {
+                            feed[j] = seedValue;
+                        }
+                    }
+
                     var self = this;
                     this.innerInstance = function () { return jayInstance }
 
-                    kendo.data.Model.fn.init.call(this, seed);
+
+
+                    kendo.data.Model.fn.init.call(this, feed);
                     jayInstance.propertyChanged.attach(function (obj, propinfo) {
                         self.set(propinfo.propertyName, propinfo.newValue)
                     });
@@ -131,12 +152,12 @@
             .memberDefinitions
             .getPublicMappedProperties()
             .forEach(function (pd) {
-                if (pd.dataType !== "Array" && !(pd.inverseProperty)) {
+                //if (pd.dataType !== "Array" && !(pd.inverseProperty)) {
                     var col = (columns[pd.name] ? columns[pd.name] : {});
                     var colD = { field: pd.name };
                     $.extend(colD, col)
                     result.push(colD);
-                }
+                //}
             });
 
         function append(field) {
@@ -178,80 +199,6 @@
         });
     }); 
 
-    
-    //modelCache = {};
-    //transportCache = {};
-    //alert($data.EntityContext.addProperty);
-
-    $data.Entity.prototype.asKendoObservable = function () {
-        function getKendoTypeName(jayDataTypeName) {
-            jayDataTypeName = $data.Container.resolveName(jayDataTypeName);
-            switch (jayDataTypeName) {
-                case "$data.Blob":
-                case "$data.String":
-                    return "string";
-                case "$data.Boolean":
-                    return "boolean";
-                case "$data.Integer":
-                case "$data.Number":
-                    return "number";
-                case "$data.Date":
-                    return "date";
-                default:
-                    return 'string'; // TODO ???
-                    throw new Error("unimplemented: " + jayDataTypeName);
-            }
-        };
-
-        var self = this;
-        var result = {};
-        //xxxx = self.getType().memberDefinitions;
-        self.getType().memberDefinitions
-            .getPublicMappedProperties()
-            .forEach(function (pd) {
-                result[pd.name] = self[pd.name];
-                //result[pd.name] = {
-                //    type: getKendoTypeName(pd.type),
-                //    nullable: pd.nullable,
-                //    editable: !pd.computed,
-                //    validation: {
-                //        required: pd.required
-                //    }
-                //}
-            });
-
-        self.getType().memberDefinitions
-            .getPublicMappedMethods()
-            .forEach(function (pd) {
-                //console.dir(pd);
-                result[pd.name] = function () {
-                    pd.method.apply(self, arguments);
-                }
-            });
-
-        //returnValue = kendo.data.Model.define({
-        //    id: self.getType().memberDefinitions.getKeyProperties()[0].name,
-        //    fields: result
-        //    //,
-        //    //init: function () {
-        //    //    kendo.data.Model.apply(this, arguments);
-        //    //}
-        //});
-        console.dir(result);
-        var result = kendo.observable(result);
-        self.propertyChanged.attach(function (obj, propinfo) {
-            result.set(propinfo.propertyName, propinfo.newValue);
-        });
-        result.bind("set", function (e) {
-            var v = self[e.field];
-            if (v !== e.value) {
-                self[e.field] = e.value;
-            }
-        });
-
-
-        return result;
-    }
 
     $data.Queryable.addMember("asKendoModel", function (newInstanceDelegate) {
         return this.defaultType.asKendoModel(newInstanceDelegate);
@@ -345,7 +292,6 @@
                 var l = qcount.length();
                 jQuery.when(ta, l).then(function (items, total) {
                     //var result = items.map(function (item) { return item instanceof $data.Entity ? new model(item.initData) : item; });
-                    
                     var result = items.map(function (item) {
                         var d = (item instanceof $data.Entity) ? item.initData : item;
                         var kendoItem = item.asKendoObservable();
@@ -358,84 +304,114 @@
                     });
                 });
             },
-            create: function (options) {
+            create: function (options, model) {
+
+                //ctx.addMany()
                 console.log("create");
                 console.dir(arguments);
-                var batch = false;
-                var jayType = self.defaultType;
-                var d = options.data;
-                if ("models" in d) {
-                    d = d.models;
-                    batch = true;
-                };
-
-                if (!(Array.isArray(d))) {
-                    d = [d];
-                }
-
-                var jd = d.map(function (data) { return new jayType(data); });
-                var idField = jayType.memberDefinitions.getKeyProperties()[0].name;
-                jd.forEach(function (item) {
-                    item[idField] = undefined;
-                });
-
-                if (batch) {
-                    ctx.addMany(jd);
-                    ctx.saveChanges()
-                       .then(function () {
-                           //var kendoItem = new modelItemClass(jayInstance.initData);
-                           var data = jd.map(function (j) { return j.initData });
-                           options.success({ "data": data });
-                       })
-                       .fail(function () {
-                           options.error("error");
-                           //alert("error!");
-                       });
+                if (model.length > 1) {
+                    var modelItems = [];
+                    model.forEach(function (modelItem) {
+                        modelItems.push(modelItem.innerInstance());
+                    });
+                    ctx.addMany(modelItems);
+                    ctx.saveChanges().then(function () {
+                        var data = [];
+                        modelItems.forEach(function (modelItem) {
+                            data.push(modelItem.initData);
+                        });
+                        options.success({ data: data });
+                    }).fail(function () {
+                        console.log("error in create");
+                        alert("error in create");
+                        ctx.stateManager.reset();
+                    });
                 } else {
-                    
+                    console.log("save single");
+                    model[0]
+                        .innerInstance()
+                        .save()
+                        .then(function () {
+                            options.success({ data: model[0].innerInstance().initData });
+                        });
                 }
-                
             },
-            update: function (options) {
+            update: function (options, model) {
                 console.log("update");
                 console.dir(arguments);
 
-                ctx.saveChanges().then(function () {
-                    //options.data.FullName = 'a';
-                    options.success(options.data);
-                }).fail(function () {
-                    options.error("error");
-                });
+                if (model.length > 1) {
+                    var items = model.map(function (item) { return item.innerInstance() });
+                    items.forEach(function (item) {
+                        ctx.attach(item, true);
+                    });
+                    ctx.saveChanges().then(function () {
+                        options.success();
+                    }).fail(function () {
+                        ctx.stateManager.reset();
+                        alert("error in batch update");
+                        options.error({}, "error");
+                    });
+                } else {
+                    model[0].innerInstance().save().then(function (item) {
+                        options.success();
+                    }).fail(function () { alert("error in update") });
+                }
+                //ctx.saveChanges().then(function () {
+                //    //options.data.FullName = 'a';
+                //    options.success(options.data);
+                //}).fail(function () {
+                //    options.error("error");
+                //});
                 //self.toArray(function () {
                 //});
                 //return false;
             },
 
-            destroy: function (options) {
+            destroy: function (options, model) {
                 //alert("!");
 
                 console.log("delete");
                 console.dir(arguments);
-                return;
-                var jayType = self.defaultType;
-                var d = options.data;
-                if ("models" in d) {
-                    d = d.models;
-                };
-                if (!(Array.isArray(d))) {
-                    d = [d];
-                }
-                var jd = d.map(function (data) { return new jayType(data); });
-                jd.forEach(function (j) {
-                    ctx.remove(j);
-                });
-                ctx.saveChanges()
-                    .then(function () {
-                        options.success({});
-                    })
-                    .fail(function () {
-                        options.error();
+                //if (mo)
+                if (model.length > 1) {
+                    model.forEach(function (item) {
+                        ctx.remove(item.innerInstance());
                     });
+                    ctx.saveChanges().then(function () {
+                        options.success({ data: options.data });
+                    }).fail(function () {
+                        ctx.stateManager.reset();
+                        alert("error in save:" + arguments[0]);
+                        options.error({}, "error", options.data);
+                    });
+                } else {
+                    model[0].innerInstance().remove().then(function () {
+                        options.success({ data: options.data });
+                    }).fail(function () {
+
+                    });
+                }
+                //return;
+                //var jayType = self.defaultType;
+                //var d = options.data;
+                //if ("models" in d) {
+                //    d = d.models;
+                //};
+                //if (!(Array.isArray(d))) {
+                //    d = [d];
+                //}
+                //var jd = d.map(function (data) { return new jayType(data); });
+                //jd.forEach(function (j) {
+                //    ctx.remove(j);
+                //});
+                //ctx.saveChanges()
+                //    .then(function () {
+                //        options.success({});
+                //    })
+                //    .fail(function () {
+                //        options.error();
+                //    });
             },
             setup: function () {
                 console.log("setup");
@@ -448,7 +424,29 @@
     var jayDataSource = kendo.data.DataSource.extend({
         init: function () {
             kendo.data.DataSource.fn.init.apply(this, arguments);
-        }
+        },
+        _promise: function (data, models, type) {
+            var that = this,
+                extend = $.extend,
+                transport = that.transport;
+
+            return $.Deferred(function (deferred) {
+                transport[type].call(transport, extend({
+                    success: function (response) {
+                        deferred.resolve({
+                            response: response,
+                            models: models,
+                            type: type
+                        });
+                    },
+                    error: function (response, status, error) {
+                        deferred.reject(response);
+                        that.error(response, status, error);
+                    }
+                }, data), models
+                );
+            }).promise();
+        },
     });
 
     $data.Queryable.addMember("asKendoDataSource", function (ds) {

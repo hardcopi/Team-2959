@@ -3,10 +3,10 @@
 
     $data.define('TravelPreference', {
         'id': { 'key': true, 'required': true, 'type': 'Edm.Guid', 'computed': false, 'nullable': false },
-        'Name': { 'type': String, 'required': true },
-        'Age': { 'type': Number, 'required': true, minValue: 1 },
-        'Continent': { 'type': Number, 'required': true },
-        'Reason': { 'type': Number, 'required': true },
+        'Name': { 'type': String },
+        'Age': { 'type': String },
+        'Continent': { 'type': String },
+        'Reason': { 'type': String },
         'Creation': Date,
         'Sent': Boolean
     });
