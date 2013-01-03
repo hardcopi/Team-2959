@@ -112,9 +112,9 @@
 
             var returnValue = kendo.data.Model.define(modelDefinition);
             //TODO align with kendoui concept
-            for (var j in returnValue.prototype.defaults) {
-                returnValue.prototype.defaults[j] = undefined;
-            }
+            //for (var j in returnValue.prototype.defaults) {
+                //returnValue.prototype.defaults[j] = undefined;
+            //}
             //console.log("default", returnValue.prototype.defaults)
             return returnValue;
         }

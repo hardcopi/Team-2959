@@ -1,21 +1,21 @@
 
 (function (global, $data, undefined) {
 
-    $data.define('TravelPreference', {
-        'id': { 'key': true, 'type': 'int', 'computed': true },
-        'Name': { 'type': String },
-        'AgeGroup': { 'type': String },
-        'Reason': { 'type': String },
-        'Creation': Date,
-        'Sent': Boolean
+    var TripSurvey = $data.define('TripSurvey', {
+        id: {type: 'int', key: true, computed: true },
+        Name: String ,
+        AgeGroup: String,
+        Reason: String,
+        TripDays: Number,
+        StaysInHotel: Boolean
     });
     
-    $data.EntityContext.extend('mydatabase', { 
-        'TravelPreferences' : { type: $data.EntitySet, elementType: TravelPreference }
+    global.TripDB = $data.EntityContext.extend('TripDB', { 
+        TripAnswers : { type: $data.EntitySet, elementType: TripSurvey }
     });
  
-    $data('TravelPreference').addEventListener('beforeCreate', function (source, pref) {
-        pref.Creation = new Date();
-    });
+    //TripSurvey.addEventListener('beforeCreate', function (source, entity) {
+    //    entity.Creation = new Date();
+    //});
     
 })(window, $data);

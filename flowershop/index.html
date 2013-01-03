@@ -3,17 +3,16 @@
 <head>
     <title></title>
 	<meta charset="utf-8" />
-	<!-- <script src="cordova.js"></script> -->
+	<!--<script src="cordova.js"></script>-->
 	<script src="kendo/js/jquery.min.js"></script>
 	<script src="kendo/js/kendo.mobile.min.js"></script>
-    <script src="scripts/datajs-1.0.3.min.js" type="text/javascript"></script>
 	<script src="scripts/jaydata.js" type="text/javascript"></script>
 	<script src="scripts/jaydatamodules/kendo.js" type="text/javascript"></script>
     <script src="scripts/mydatabase.js" type="text/javascript"></script>
-
 	<link href="kendo/styles/kendo.mobile.all.min.css" rel="stylesheet" />
 	<link href="styles/main.css" rel="stylesheet" />
     <style scoped>
+        /*
         #forms input:not([type=checkbox]):not([type=radio]),
         #forms select,
         #forms .k-dropdown
@@ -21,141 +20,108 @@
             -webkit-box-sizing: border-box;
             box-sizing: border-box;
             width: 50%;
-        }
+        }*/
     </style>
 </head>
 <body>
 
-    <div data-role="view" id="tabstrip-forms" data-model="viewModel" data-title="Surveys">
+    <div data-role="view" id="list" data-model="viewModel" data-transition="slide" data-title="Surveys">
         <header data-role="header">
             <div data-role="navbar">
-                <a data-align="right" data-icon="add" data-role="button" data-bind="click: newSurvey">New</a>
+                <a data-align="right" data-icon="add" data-role="button" href="#editor" data-bind="click: newSurvey">New</a>
             </div>
         </header>
         <ul id="listView"
             data-role="listview"
             data-style="inset"
-            data-template="template"
-            data-bind="source: myDatabase, events: { click: show }">
+            data-template="item-template"
+            data-bind="source: surveyDataSource, events: { click: select }">
         </ul>
-        <span id="norecord">No record found</span>
     </div>
     
-	<script id="template" type="text/x-kendo-template">
-		<a>${ data.Name }</a>
+	<script id="item-template" type="text/x-kendo-template">
+        <a href="##details" data-bind="text:Name"></a>
 	</script>
 
-    <div data-role="view" id="tabstrip-show" data-model="viewModel" data-title="Show survey">
+    <div data-role="view" id="details" data-model="viewModel" data-transition="slide" data-title="Show survey">
         <header data-role="header">
             <div data-role="navbar">
                 <a data-align="left" data-role="backbutton">Back</a>
-                <a data-align="right" data-role="button" data-bind="click: del">Delete</a>
-                <a data-align="right" data-role="button" data-bind="click: edit">Edit</a>
+                <a data-align="right" data-role="button" href="#list" data-bind="click: remove">Delete</a>
+                <a data-align="right" data-role="button" href="#editor">Edit</a>
             </div>
         </header>
         <ul data-role="listview" data-style="inset">
+            <li>ID<span class="value" data-bind="text: survey.id"></span></li>
             <li>Name <span class="value" data-bind="text: survey.Name"></span></li>
             <li>Age <span class="value" data-bind="text: survey.AgeGroup"></span></li>
             <li>Reason <span class="value" data-bind="text: survey.Reason"></span></li>
+            <li>Trip days<span class="value" data-bind="text: survey.TripDays"></span></li>
+            <li>Stays in hotel<span class="value" data-bind="text: survey.StaysInHotel"></span></li>
         </ul>
     </div>
-
-    <div data-role="view" id="tabstrip-form" data-model="viewModel" data-title="New survey">
+    
+    <div data-role="view" id="editor" data-model="viewModel" data-transition="slide" data-title="New survey">
         <header data-role="header">
             <div data-role="navbar">
                 <a data-align="left" data-role="backbutton" >Back</a>
-                <a data-align="right" data-role="button" data-bind="click: add, visible: isNew, enabled: hasChanges">Add</a>
-                <a data-align="right" data-role="button" data-bind="click: save, visible: isNotNew, enabled: hasChanges">Save</a>
+                <a data-align="right" data-role="button" href="#list" data-bind="click: add, visible: survey.isNew, enabled: hasChanges">Add</a>
+                <a data-align="right" data-role="button" href="#list" data-bind="click: remove, invisible: survey.isNew">Delete</a>
+                <a data-align="right" data-role="button" href="#list" data-bind="click: save, invisible: survey.isNew, enabled: hasChanges">Save</a>
             </div>
         </header>
+        
         <form id="surveyForm">
             <ul data-role="listview" data-style="inset">
-                <li>
-                    <input  data-bind="value: survey.Name" type="text" />
-                    Your Name:
-                </li>
-                <li>
-                    <select data-value-field="name" data-text-field="name" data-bind="source: AgeGroups, value: survey.AgeGroup, events: { change: change }" min=1></select>
-                    Your Age:
-                </li>
-                <li>
-                    <select data-value-field="name" data-text-field="name" data-bind="source: Reasons, value: survey.Reason, events: { change: change }" min=1></select>
-                    Reason of travel:
-                </li>
+                <li>Your Name<input  data-bind="value: survey.Name" required type="text" /></li>
+                <li>Your Age <select data-bind="source: AgeGroupOptions, value: survey.AgeGroup"></select></li>
+                <li>Reason of travel<select data-bind="source: ReasonOptions, value: survey.Reason"></select></li>
+                <li>Stays in hotel<input type="checkbox" data-role="switch" data-bind="checked: survey.StaysInHotel" ></li>
+                <li>Travel days<input type="number" data-bind="value: survey.TripDays" /></li>
             </ul>
         </form>
     </div>
-
     <script>
-        var app = null;
-        var viewModel = null;
-        var localDatabase = new mydatabase({name: 'local', databaseName: 'surveys'});
-        $.when($.ready, localDatabase.onReady())
-        .then(function () {
-            // TODO fix this
-            var validator = $("#surveyForm").kendoValidator().data("kendoValidator");
-            var dataSource = localDatabase.TravelPreferences.asKendoDataSource();
-            dataSource.bind("change", function() {
-                if (dataSource.view().length > 0)
-                    $('#norecord').hide();
-                else
-                    $('#norecord').show();
-            });
+        var tripDB = new TripDB({name: 'local', databaseName: 'tripdbx'});
+        alert(tripDB);
+        
+        $.when(tripDB.onReady()).then(
+            function () {
+            var surveyDataSource = tripDB.TripAnswers.asKendoDataSource();
+                
             viewModel = kendo.observable({
-                myDatabase: dataSource,
+                surveyDataSource: surveyDataSource,
+                AgeGroupOptions: [ "", "under 18", "18-27", "28-44", "45-62", "Over 63"],
+                ReasonOptions: ["",  "Vacation", "Business", "Family/friend visit","Other"],
+                
                 survey:  null,
-                AgeGroups: [ { id: 0, name: "" }, { id: 1, name: "under 18"}, { id: 2, name: "18-27"}, { id: 3, name: "28-44"}, 
-                        { id: 4, name: "45-62"}, { id: 5, name: "Over 63" } ],
-                Reasons: [ { id: 0, name: "" },{ id: 1, name: "Vacation"}, { id: 2, name: "Business"},{ id: 3, name: "Family/friend visit"},{ id: 4, name: "Other"}],
+                
                 add: function() {
-                    if (validator.validate() && viewModel.hasChanges) { // && viewModel.hasChanges needed because it is called multiple times
-                        viewModel.myDatabase.add( viewModel.survey );
-                        viewModel.save();
-                    }
+                    surveyDataSource.add( viewModel.survey );
+                    surveyDataSource.sync();
                 },
+                
                 save: function() {
-                    if (validator.validate()) {
-                        viewModel.myDatabase.sync();
-                        viewModel.set('hasChanges', false);
-                        viewModel.set('survey', undefined); // TODO remove
-                        app.navigate('#tabstrip-forms');
-                    }
+                    surveyDataSource.sync();
                 },
-                back: function() {
-                    viewModel.set('survey', undefined); // TODO remove
-                    app.navigate('#tabstrip-forms');
-                },
+                
                 newSurvey: function(e) {
-                    // Cordova is doing something to cause this event to fire twice. is it isolated to Icenium?
-                    // if (viewModel.survey) return; // needed because it is called multiple times
-                    viewModel.set('survey',new viewModel.myDatabase.options.schema.model()),
-                    viewModel.set('survey.AgeGroup', ""),
-                    viewModel.set('survey.Reason', ""),
-                    viewModel.set('hasChanges', false);
-                    viewModel.set('isNew',true);
-                    app.navigate('#tabstrip-form');
+                    viewModel.set('survey',new surveyDataSource.options.schema.model());
                 },
-                del: function(e) {
-                    viewModel.myDatabase.remove(viewModel.survey);
-                    viewModel.save();
+                
+                remove: function(e) {
+                    surveyDataSource.remove(viewModel.survey);
+                    surveyDataSource.sync();
                 },
-                show: function(e) {
+                
+                select: function(e) {
+                    viewModel.set('survey',null);
                     viewModel.set('survey', e.dataItem);
-                    app.navigate('#tabstrip-show');
-                },
-                edit: function(e) {
-                    viewModel.set('isNew',false);
-                    app.navigate('#tabstrip-form');
-                },
-                isNew: false,                
-                isNotNew: function() { return !viewModel.get('isNew'); },
-                hasChanges: false,
-                change: function() {
-                    viewModel.set('hasChanges', true);
                 }
             });
+
             app = new kendo.mobile.Application(document.body);
-        });                
+        });
     </script>
 </body>
 </html>
