@@ -12198,8 +12198,8 @@ $data.Entity = Entity = $data.Class.define("$data.Entity", null, null, {
 
         var ctx = null;
         this.context = ctx;
-
-        if (arguments.length == 1 && typeof initData === "object") {
+///MODIFICATION arguments.length == 1 && 
+        if (typeof initData === "object") {
             var typeMemDefs = this.getType().memberDefinitions;
             var memDefNames = typeMemDefs.getPublicMappedPropertyNames();//.map(function (memDef) { return memDef.name; });
             //            if (Object.keys(initData).every(function (key) { return memDefNames.indexOf(key) != -1; })) {

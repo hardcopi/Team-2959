@@ -1,6 +1,32 @@
 (function ($data) {
 
+    kendo.data.binders.submit = kendo.data.Binder.extend({ 
+        init: function(element, bindings, options) {
+            console.log("submit binding init");
+            kendo.data.Binder.fn.init.call(this, element, bindings, options);
+            $(element).bind("submit", function() {
+                console.log("submit binding invoked");
+                var obj = bindings.submit.source;
+                var fn = obj[bindings.submit.path];
+                if (typeof fn === 'function') {
+                    fn.apply(obj, arguments);
+                    return false;
+                }
+                
+            });
+        },            
+        refresh: function() {      
+        }
+    });
+
     var oldProcessor = $data.Entity.inheritedTypeProcessor;
+    $data.kendo = {};
+    $data.kendo.BaseModelType = kendo.data.Model.define({
+        init: function (data) {
+            kendo.data.Model.fn.init.call(this, data);
+        }
+    });
+    
     $data.Entity.inheritedTypeProcessor = function (type) {
 
         var memberDefinitions = type.memberDefinitions;
@@ -20,41 +46,99 @@
                     return "date";
                 default:
                     return 'object'; // TODO ???
-                    throw new Error("unimplemented: " + jayDataTypeName);
             }
         };
 
 
-        function createKendoModel(newInstanceDelegate) {
-            console.log("creating type");
+        function createKendoModel(options) {
+            ///<param name="options">Contains options.owningContextType if initialized in a scope of a context</param>
             var memberDefinitions = type.memberDefinitions,
                 fields = {};
-
+            //debugger;
             memberDefinitions
                 .getPublicMappedProperties()
                 .forEach(function (pd) {
                     //if (pd.dataType !== "Array" && !(pd.inverseProperty)) {
-                        fields[pd.name] = {
-                            type: getKendoTypeName(pd.type),
-                            nullable: false,
-                            editable: !pd.computed,
-                            //defaultValue: pd.type === "Edm.Boolean" ? true : undefined,
-                            validation: {
-                                required: pd.required
+                    fields[pd.name] = {
+                        type: getKendoTypeName(pd.type),
+                        //nullable:  "nullable" in pd ? pd.nullable : true,
+                        editable: !pd.computed,
+                        defaultValue: null,
+                        //defaultValue: undefined,
+                        //defaultValue: pd.type === "Edm.Boolean" ? true : undefined,
+                        validation: {
+                            required: pd.required || "nullable" in pd ? !(pd.nullable) : false,
+                            rules: {
+                                required: function () { console.dir("!"); return true;}
                             }
                         }
+                    }
+                    
                     //};
                 });
 
+            function setInitialValue(obj, memDef) {
+                if (!obj[memDef.name]) {
+                    function getDefault() {
+                        switch ($data.Container.resolveType(memDef.type)) {
+                            case $data.Number: return 0.0;
+                            case $data.Integer: return 0;
+                            case $data.Date: return new Date();
+                            case $data.Boolean: return false;
+                        }
+                    }
 
-            console.dir(memberDefinitions.getPublicMappedMethods());
+                    obj[memDef.name] = getDefault();
+
+                }
+            }
+
+            //console.dir(memberDefinitions.getPublicMappedMethods());
             var modelDefinition = {
                 fields: fields,
                 init: function (data) {
                     //console.dir(arguments);
-                    var jayInstance = data instanceof type ? data : new type(data);
+
+                    var ctxType = options && options.owningContextType || undefined;
+
+                    var contextSetTypes = [];
+                    if (options && options.owningContextType) {
+                        contextSetTypes = options.owningContextType
+                                                     .memberDefinitions
+                                                     .getPublicMappedProperties()
+                                                     .filter(function (pd) { return $data.Container.resolveType(pd.type) === $data.EntitySet })
+                                                     .map(function (pd) { return $data.Container.resolveType(pd.elementType) });
+
+                    };
+
+                    console.dir(contextSetTypes);
+                    var newInstanceOptions = {
+                        entityBuilder: function (instance, members) {
+                            members.forEach(function (memberInfo) {
+                                if ( !(memberInfo.key === true) && (memberInfo.required === true || memberInfo.nullable === false)) {
+                                    var memberType = $data.Container.resolveType(memberInfo.type);
+                                    if (memberType.isAssignableTo && memberType.isAssignableTo($data.Entity) && contextSetTypes.indexOf(memberType) === -1) {
+                                        //it's a complex property
+                                        instance[memberInfo.name] = new memberType({}, newInstanceOptions);
+                                    } else {
+                                        setInitialValue(instance, memberInfo);
+                                    }
+                                }
+                            });
+                        }
+                    }
+
+                    var jayInstance = data instanceof type ? data : new type(data, newInstanceOptions);
+                    //debugger;
+                    //debugger;
+                    //fill up complex types props
+
+                    //type.memberDefinitions
+                    //
+
 
                     var seed = jayInstance.initData;
+
                     var feed = {};
                     //TODO create precompiled strategy
                     for (var j in seed) {
@@ -78,22 +162,75 @@
 
 
 
-                    kendo.data.Model.fn.init.call(this, feed);
+                    //kendo.data.Model.fn.init.call(this, feed);
+                    $data.kendo.BaseModelType.fn.init.call(this, feed);
+                    
                     jayInstance.propertyChanged.attach(function (obj, propinfo) {
-                        self.set(propinfo.propertyName, propinfo.newValue)
-                    });
-                    this.bind("set", function (e) {
-                        var v = jayInstance[e.field];
-                        if (v !== e.value) {
-                            jayInstance[e.field] = e.value;
+                        console.log("propchange", arguments);
+                        var jay = this;
+                        var newValue = propinfo.newValue;
+                        if (!jay.changeFromKendo) {
+                            newValue = newValue.asKendoObservable ? newValue.asKendoObservable() : newValue
+                            jayInstance.changeFromJay = true;
+                            self.set(propinfo.propertyName, propinfo.newValue);
+                            delete jayInstance.changeFromJay;
                         }
                     });
-                    if (newInstanceDelegate) {
-                        newInstanceDelegate(jayInstance);
+
+                    this.bind("set", function (e) {
+                        var propName = e.field;
+                        var propNameParts = propName.split(".");
+                        jayInstance.changeFromKendo = true;
+                        if (propNameParts.length == 1) {
+                            var propValue = e.value;
+                            if (!jayInstance.changeFromJay) {
+                                propValue = propValue.innerInstance ? propValue.innerInstance() : propValue;
+                                jayInstance[propName] = propValue;
+                                if (options && options.autoSave) {
+                                    jayInstance.save();
+                                }
+                            }
+                        } else {
+                            var rootProp = jayInstance[propNameParts[0]];
+                            //if (!jayInstance.changeFromJay) {
+                                if (rootProp instanceof $data.Entity) {
+                                    jayInstance[propNameParts[0]] = rootProp;
+                                }
+                            //}
+                        }
+                        delete jayInstance.changeFromKendo;
+                        //var parts = e.field.split('.');
+                        //if (parts.length == 1) {
+                        //    var origValue = jayInstance[e.field];
+                        //    var value = value.innerInstance ? value.innerInstance() : value;
+                        //    if (origValue !== e.value) {
+                        //        jayInstance[e.field] = e.value;
+                        //    }
+                        //} else {
+                            
+                        //    //if (jayInstance[parts[0]][parts[1]] instanceof $data.)
+                        //}
+                    });
+                    if (options && options.newInstanceCallback) {
+                        options.newInstanceCallback(jayInstance);
                     }
+
+
+                    //var self = this;
+
+                    //this.save = function () {
+                    //    return self.innerInstance().save();
+                    //};
+                    //this.remove = function () {
+                    //    return self.innerInstance().remove();
+                    //};
                 },
                 save: function () {
-                    this.innerInstance().save();
+                    console.log("item.save", this, arguments);
+                    return this.innerInstance().save();
+                },
+                remove: function () {
+                    return this.innerInstance().remove();
                 }
 
             };
@@ -110,32 +247,32 @@
                     break;
             }
 
-            var returnValue = kendo.data.Model.define(modelDefinition);
+            var returnValue = kendo.data.Model.define($data.kendo.BaseModelType, modelDefinition);
             //TODO align with kendoui concept
             //for (var j in returnValue.prototype.defaults) {
-                //returnValue.prototype.defaults[j] = undefined;
+            //    returnValue.prototype.defaults[j] = undefined;
             //}
             //console.log("default", returnValue.prototype.defaults)
             return returnValue;
         }
 
-        function asKendoModel(newInstanceDelegate) {
-            var cacheObject = newInstanceDelegate || type;
-            return cacheObject.kendoModelType || (cacheObject.kendoModelType = createKendoModel(newInstanceDelegate));
+        function asKendoModel(options) {
+            var cacheObject = options || type;
+            return cacheObject.kendoModelType || (cacheObject.kendoModelType = createKendoModel(options));
         }
 
-        function asKendoObservable(instance) {
+        function asKendoObservable(instance, options) {
 
-            var kendoModel = type.asKendoModel();
+            var kendoModel = type.asKendoModel(options);
             return new kendoModel(instance);
         }
 
         type.asKendoModel = asKendoModel;
 
-        type.prototype.asKendoObservable = function () {
+        type.prototype.asKendoObservable = function (options) {
             var self = this;
 
-            var kendoObservable = asKendoObservable(this);
+            var kendoObservable = asKendoObservable(this, options);
 
             return kendoObservable;
         }
@@ -153,10 +290,10 @@
             .getPublicMappedProperties()
             .forEach(function (pd) {
                 //if (pd.dataType !== "Array" && !(pd.inverseProperty)) {
-                    var col = (columns[pd.name] ? columns[pd.name] : {});
-                    var colD = { field: pd.name };
-                    $.extend(colD, col)
-                    result.push(colD);
+                var col = (columns[pd.name] ? columns[pd.name] : {});
+                var colD = { field: pd.name };
+                $.extend(colD, col)
+                result.push(colD);
                 //}
             });
 
@@ -178,7 +315,7 @@
             return this;
         }
 
-        
+
         function prepareResult(r) {
             r.prepend = prepend;
             r.append = append;
@@ -197,23 +334,22 @@
         return Object.keys(self._entitySetReferences).map(function (set) {
             return self._entitySetReferences[set].tableName;
         });
-    }); 
-
-
-    $data.Queryable.addMember("asKendoModel", function (newInstanceDelegate) {
-        return this.defaultType.asKendoModel(newInstanceDelegate);
-
     });
-    
+
+
+    $data.Queryable.addMember("asKendoModel", function (options) {
+        options.owningContextType = options.owningContextType || this.entityContext.getType();
+        return this.defaultType.asKendoModel(options);
+    });
+
     $data.Queryable.addMember("asKendoRemoteTransportClass", function (modelItemClass) {
         var self = this;
         var ctx = self.entityContext;
         function reset() {
             ctx.stateManager.reset();
         };
-        var TransportClass =  kendo.data.RemoteTransport.extend({
-            init: function (dynamicEntries) {
-                this.de = dynamicEntries;
+        var TransportClass = kendo.data.RemoteTransport.extend({
+            init: function () {
                 this.items = [];
             },
             read: function (options) {
@@ -388,6 +524,10 @@
         init: function () {
             kendo.data.DataSource.fn.init.apply(this, arguments);
         },
+        createItem: function (initData) {
+            var type = this.options.schema.model;
+            return new type(initData);
+        },
         _promise: function (data, models, type) {
             var that = this,
                 extend = $.extend,
@@ -415,9 +555,9 @@
     $data.Queryable.addMember("asKendoDataSource", function (ds) {
         var self = this;
 
-        var newEntries = [];
-
-        var model = self.asKendoModel(function (item) { newEntries.push(item); });
+        var model = self.asKendoModel({
+            newInstanceCallback: function () { console.log("new instance: ", arguments) }
+        });
 
         ds = ds || {};
         //unless user explicitly opts out server side logic
@@ -428,7 +568,7 @@
         ds.pageSize = ds.pageSize || 25;
 
         var TransportClass = self.asKendoRemoteTransportClass(model);
-        ds.transport = new TransportClass(newEntries);
+        ds.transport = new TransportClass();
 
         ds.schema = {
             model: model,
