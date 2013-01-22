@@ -335,6 +335,9 @@
                         viewModel.categories.add(viewModel.category);
                     }
                     viewModel.categories.sync();
+                    viewModel.categories.bind("sync", function() {
+                        viewModel.categories.fetch()
+                    }, true);
                     //this is to support form-submit invocation
                     viewModel.app.navigate("#:back");
                 },
