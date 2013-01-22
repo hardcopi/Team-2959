@@ -252,6 +252,7 @@
                         tasks.add(viewModel.task);
                     }
                     tasks.sync();
+                    //this is to support form-submit invocation
                     viewModel.app.navigate("#:back");
                 },    
                 
@@ -326,6 +327,7 @@
                         viewModel.categories.add(viewModel.category);
                     }
                     viewModel.categories.sync();
+                    //this is to support form-submit invocation
                     viewModel.app.navigate("#:back");
                 },
                 
