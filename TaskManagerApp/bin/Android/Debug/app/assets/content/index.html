@@ -33,11 +33,10 @@
         <footer data-role="footer">
             <div data-role="tabstrip">
                 <a data-bind="visible: appSettings.UseCategories" href="#categoryList" data-icon="bookmarks" >Categories</a>
-                <a href="#taskList" data-icon="recents">Tasks</a>
-                <a href="#settings" data-icon="settings">Settings</a>
+                <a href="#taskList"     data-icon="recents">Tasks</a>
+                <a href="#settings"     data-icon="settings">Settings</a>
             </div> 
         </footer>
-        
         <ul id="buttongroup"  data-align="right" data-index="0"
             data-bind="events: {select: changeTaskFilter}" data-role="buttongroup">
             <li>All tasks</li>
@@ -45,7 +44,7 @@
             <li>Completed</li>
         </ul>
         
-        <ul data-style="inset" data-role="listview"  data-bind="visible: showCategoryControls">
+        <ul data-style="inset" data-role="listview"  data-bind="visible:category">
             <li>
                 Category filter:
                 <span class="filter-tag" 
@@ -59,6 +58,8 @@
         </ul>
         
 
+        
+        
         <ul id="listView"
             data-role="listview"
             data-style="inset"
@@ -68,17 +69,16 @@
         
     	<script id="taskListItem" type="text/x-kendo-template">
             <a href="##taskEditor" class="km-listview-link" data-role="listview-link">${Todo} 
-                <div data-bind="visible: appSettings.UseCategories">
-                    <div style="font-size:8pt" data-bind="invisible:category, text: resolveCategoryName"></div>
-                </div>
+                <div style="font-size:8pt" 
+                        data-bind="invisible:category, text: resolveCategoryName"></div>
             </a>
             
             <input type="checkbox" 
-                   data-role="switch" data-off-label="Active" 
+                    data-role="switch" data-off-label="Active" 
                    data-on-label="Done" data-bind="checked: Completed, events: { change: save }" />
         </script>          
         
-        <ul data-style="inset" data-role="listview" data-bind="visible: appSettings.ShowNewItemInList">
+        <ul data-style="inset" data-role="listview">
             <li>
                 Add new task
                     <a data-role="detailbutton" href="#taskEditor" data-bind="click: newTask" 
@@ -88,9 +88,9 @@
         
         <ul data-role="actionsheet" id="categoryAction" data-popup='{"direction": "left"}'>
             <li class="km-actionsheet-title">Actions:</li>
-            <li><a href="#" data-action="viewModel.removeAllTasksOnScreen">Remove tasks on screen</a></li>
-            <li><a href="#" data-bind="visible: showCategoryControls" data-action="viewModel.navigateToCategoryEditor">Rename</a></li>
-            <li><a href="#" data-bind="visible: showCategoryControls" data-action="viewModel.removeCategory">Remove category</a></li>
+            <li><a href="#" data-bind="visible: category" data-action="viewModel.navigateToCategoryEditor">Rename</a></li>
+            <li><a href="#" data-action="viewModel.removeAllTasks">Remove tasks on screen</a></li>
+            <li><a href="#" data-bind="visible: category" data-action="viewModel.removeCategory">Remove category</a></li>
         </ul>
         
     </div>
@@ -99,11 +99,10 @@
     <div data-role="view" id="taskEditor" data-model="viewModel" data-title="Edit Task">
         <header data-role="header">
             <div data-role="navbar">
-                <a data-align="left" data-bind="visible: task.isNew" data-role="backbutton" >Back</a>
-                <a data-align="left" data-bind="invisible: task.isNew, click: saveTask" data-role="button" >Back</a>
+                <a data-align="left" data-bind="visible: task.isNew" data-role="backbutton" >Back (dontsave)</a>
+                <a data-align="left" data-bind="invisible: task.isNew, click: tasks.sync" data-role="backbutton" >Back</a>
                 <span data-role="view-title"></span>
-                <a data-align="right" data-role="button" href="#:back" data-bind="invisible: task.isNew, click: removeTask">Remove</a>
-                <a data-align="right" data-role="button" href="#:back" data-bind="visible: task.isNew, click: saveTask">Save</a>
+                <a data-align="right" data-role="button" data-bind="visible: task.isNew, click: saveTask">Save</a>
             </div>
         </header>
         
@@ -113,7 +112,7 @@
                 <li>Todo:<input  data-bind="value: task.Todo" placeholder="What to do?" required type="text"/></li>
                 <li>Urgent: <input  type="checkbox" data-bind="checked: task.Urgent" data-role="switch" /></li>
                 <li>Completed: <input  type="checkbox" data-bind="checked: task.Completed" data-role="switch" /></li>
-                <li data-bind="visible: appSettings.UseCategories">
+                <li>
                     <a href="#categoryPicker" data-role="listview-link" 
                         data-bind="text: resolveCategoryName" class="km-listview-link">
                     </a>
@@ -145,12 +144,12 @@
     
     
     <!-- category list view -->
-    <div data-role="view" id="categoryList" data-model="viewModel" data-title="Categories">
+    <div data-role="view" id="categoryList" data-model="viewModel" data-title="Categories" data-layout="default">
         <header data-role="header">
             <div data-role="navbar">
                 <span data-role="view-title"></span>
                 <a data-align="right" data-icon="add" data-role="button" 
-                                      href="#categoryEditor" data-bind="click: newCategory">New</a>
+                                      href="#categoryEditor" data-bind="click: newCategory"></a>
             </div>
         </header>
         
@@ -161,7 +160,6 @@
                 <a href="#settings"     data-icon="settings">Settings</a>
             </div> 
         </footer>
-        
         <ul id="listView"
             data-role="listview"
             data-style="inset"
@@ -183,7 +181,7 @@
         <header data-role="header">
             <div data-role="navbar">
                 <a data-align="left" data-role="backbutton">Back</a>
-                <a data-align="right" data-role="button" data-bind="click: saveCategory">Save</a>
+                <a data-align="right" data-role="button" href="#categoryList" data-bind="click: saveCategory">Save</a>
             </div>
         </header>
         
@@ -201,17 +199,9 @@
                 <a data-align="left" data-role="backbutton">Back</a>
             </div>
         </header>
-        <footer data-role="footer">
-            <div data-role="tabstrip">
-                <a data-bind="visible: appSettings.UseCategories" href="#categoryList" data-icon="bookmarks" >Categories</a>
-                <a href="#taskList"     data-icon="recents">Tasks</a>
-                <a href="#settings"     data-icon="settings">Settings</a>
-            </div> 
-        </footer>
         
         <ul data-role="listview" data-style="inset">
             <li>Use Categories: <input  type="checkbox" data-role="switch" data-bind="checked: appSettings.UseCategories"  /></li>
-            <li>"Add New" in list view: <input  type="checkbox" data-role="switch" data-bind="checked: appSettings.ShowNewItemInList"  /></li>
         </ul>
     </div>    
     
@@ -240,28 +230,25 @@
                 
                 newTask: function() {
                     viewModel.set('task',viewModel.tasks.createItem());
+                    viewModel.task.set("Category_Id", null);
                     if(viewModel.category) {
                         viewModel.task.set("Category_Id", viewModel.category.Id);
                     }
                 },
                 
-                saveTask: function() {
-                    var task = viewModel.task, tasks = viewModel.tasks;
-                    
-                    if (task.isNew()) {
-                        tasks.add(viewModel.task);
-                    }
-                    tasks.sync();
-                    viewModel.app.navigate("#:back");
-                },    
+                
+                
+                saveNewTask: function() {
+                    viewModel.tasks.add(viewModel.task);
+                    viewModel.tasks.sync();
+                    viewModel.tasks.bind("sync", function() {
+                       viewModel.app.navigate("#:back");  
+                    }, true);
+                
+                },
                 
                 selectTask: function(e) {
                     viewModel.set('task', e.dataItem);
-                },
-                
-                removeTask: function(e) {
-                     viewModel.tasks.remove(viewModel.task);
-                     viewModel.tasks.sync();
                 },
                         
                 changeTaskFilter: function(e) {
@@ -269,11 +256,30 @@
                     viewModel.set("taskStatusFilter", e.sender.selectedIndex);
                 },
                 
-                               
                 resolveCategoryName: function(e) {
                     var task = e instanceof kendo.data.Model ? e : e.task;
                     var catId = task.get("Category_Id");
                     return catId ? this.categories.get(catId).Name : "Uncategorized";
+                },
+                
+                newCategory: function() {
+                    viewModel.set('category', viewModel.categories.createItem());
+                },
+                
+                saveCategory: function() {
+                    if(viewModel.category.isNew()) {
+                        viewModel.categories.add(viewModel.category);
+                    }
+                    viewModel.categories.sync();
+                    viewModel.app.navigate("#:back");
+                },
+                
+                selectCategory: function(e) {
+                    viewModel.set("category", e.dataItem);
+                },
+                
+                setCategory: function(e) {
+                    viewModel.task.set("Category_Id", e.dataItem.Id);
                 },
                 
                 clearCategoryFilter: function() {
@@ -284,16 +290,16 @@
                     viewModel.app.navigate("#categoryEditor");
                 },
                 
-                setCategory: function(e) {
-                    viewModel.task.set("Category_Id", e.dataItem.Id);
-                },               
                 
-                
-                removeAllTasksOnScreen: function() {
+                removeAllTasks: function() {
                     while(viewModel.tasks.data().length > 0) {
                         viewModel.tasks.remove(viewModel.tasks.view()[0]);
                     }
                     viewModel.tasks.sync();
+                },
+                
+                removeCategory: function() {
+                    
                 },
                 
                 
@@ -315,34 +321,9 @@
                     }
                     console.log("apply filter", filter,viewModel.get("taskStatusFilter"));
                     viewModel.tasks.filter(filter);
-                },
-                
-                newCategory: function() {
-                    viewModel.set('category', viewModel.categories.createItem());
-                },
-                
-                saveCategory: function() {
-                    if(viewModel.category.isNew()) {
-                        viewModel.categories.add(viewModel.category);
-                    }
-                    viewModel.categories.sync();
-                    viewModel.app.navigate("#:back");
-                },
-                
-                selectCategory: function(e) {
-                    viewModel.set("category", e.dataItem);
-                },
-                
-                removeCategory: function() {
-                    viewModel.removeAllTasksOnScreen();
-                    viewModel.categories.remove(viewModel.category);
-                    viewModel.categories.sync();
-                    viewModel.set("category", null);
-                },
-                
-                showCategoryControls: function() {
-                  return this.get("appSettings.UseCategories") && this.get("category");
                 }
+                
+                
 
                 
             });

@@ -11,7 +11,7 @@
 
     var AppSettings = $data.define("AppSettings", {
         UseCategories: Boolean,
-        ShowNewItemInList: Boolean
+        UseDates: Boolean
     });
 
     var TodoDB = $data.EntityContext.extend('TodoDB', {
@@ -27,7 +27,7 @@
            }
            
            function createAppSettings() {
-               AppSettings.save({Id: 1, UseCategories: false, ShowNewItemInList: true}).then(returnEntity);
+               AppSettings.save({Id: 1, UseCategories: true}).then(returnEntity);
            };
            
            return that.AppSettings
