@@ -2,10 +2,8 @@
 
     kendo.data.binders.submit = kendo.data.Binder.extend({ 
         init: function(element, bindings, options) {
-            console.log("submit binding init");
             kendo.data.Binder.fn.init.call(this, element, bindings, options);
             $(element).bind("submit", function() {
-                console.log("submit binding invoked");
                 var obj = bindings.submit.source;
                 var fn = obj[bindings.submit.path];
                 if (typeof fn === 'function') {
@@ -67,10 +65,7 @@
                         //defaultValue: undefined,
                         //defaultValue: pd.type === "Edm.Boolean" ? true : undefined,
                         validation: {
-                            required: pd.required || "nullable" in pd ? !(pd.nullable) : false,
-                            rules: {
-                                required: function () { console.dir("!"); return true;}
-                            }
+                            required: pd.required || "nullable" in pd ? !(pd.nullable) : false
                         }
                     }
                     

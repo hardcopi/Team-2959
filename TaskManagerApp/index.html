@@ -6,16 +6,9 @@
 	<!--<script src="cordova.js"></script>-->
 	<script src="kendo/js/jquery.min.js"></script>
 	<script src="kendo/js/kendo.mobile.min.js"></script>
-	<script src="kendo/js/kendo.popup.js"></script>
-	<script src="kendo/js/kendo.list.js"></script>
-	<script src="kendo/js/kendo.dropdownlist.js"></script>
-	<script src="kendo/js/kendo.timepicker.js"></script>
-	<script src="kendo/js/kendo.calendar.js"></script>
-	<script src="kendo/js/kendo.datepicker.js"></script>
-	<script src="kendo/js/kendo.datetimepicker.js"></script>
 	<script src="scripts/jaydata.js" type="text/javascript"></script>
 	<script src="scripts/jaydatamodules/kendo.js" type="text/javascript"></script>
-    <script src="scripts/mydatabase.js" type="text/javascript"></script>
+    <script src="scripts/todoDatabase.js" type="text/javascript"></script>
 	<link href="kendo/styles/kendo.mobile.all.min.css" rel="stylesheet" />
 	<link href="styles/main.css" rel="stylesheet" />
 </head>
@@ -32,8 +25,8 @@
         </header>
         <footer data-role="footer">
             <div data-role="tabstrip">
-                <a data-bind="visible: appSettings.UseCategories" href="#categoryList" data-icon="bookmarks" >Categories</a>
                 <a href="#taskList" data-icon="recents">Tasks</a>
+                <a data-bind="visible: appSettings.UseCategories" href="#categoryList" data-icon="bookmarks" >Categories</a>
                 <a href="#settings" data-icon="settings">Settings</a>
             </div> 
         </footer>
@@ -156,9 +149,9 @@
         
         <footer data-role="footer">
             <div data-role="tabstrip">
-                <a href="#categoryList" data-icon="bookmarks" >Categories</a>
-                <a href="#taskList"     data-icon="recents">Tasks</a>
-                <a href="#settings"     data-icon="settings">Settings</a>
+                <a href="#taskList" data-icon="recents">Tasks</a>
+                <a data-bind="visible: appSettings.UseCategories" href="#categoryList" data-icon="bookmarks" >Categories</a>
+                <a href="#settings" data-icon="settings">Settings</a>
             </div> 
         </footer>
         
@@ -203,9 +196,9 @@
         </header>
         <footer data-role="footer">
             <div data-role="tabstrip">
+                <a href="#taskList" data-icon="recents">Tasks</a>
                 <a data-bind="visible: appSettings.UseCategories" href="#categoryList" data-icon="bookmarks" >Categories</a>
-                <a href="#taskList"     data-icon="recents">Tasks</a>
-                <a href="#settings"     data-icon="settings">Settings</a>
+                <a href="#settings" data-icon="settings">Settings</a>
             </div> 
         </footer>
         
