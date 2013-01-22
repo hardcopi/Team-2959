@@ -3,7 +3,7 @@
     });
 
     var Task = $data.define("Task", {
-        Todo: { type: String, required: true },
+        Todo: String,
         Urgent: Boolean,
         Completed: {type: Boolean, required: true },
         Category_Id: Number
