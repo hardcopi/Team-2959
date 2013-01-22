@@ -39,7 +39,7 @@
         </ul>
         
         <ul data-style="inset" data-role="listview"  data-bind="visible: showCategoryControls">
-            <li>
+            <li style="color: gray">
                 Category filter:
                 <span class="filter-tag" 
                       data-bind="click: removeCategoryFilter"
@@ -72,7 +72,7 @@
         </script>          
         
         <ul data-style="inset" data-role="listview" data-bind="visible: appSettings.ShowNewItemInList">
-            <li>
+            <li style="color: gray">
                 Add new task
                     <a data-role="detailbutton" href="#taskEditor" data-bind="click: newTask" 
                         data-style="rowinsert"></a>
@@ -96,7 +96,7 @@
                 <a data-align="left" data-bind="invisible: task.isNew, click: saveTask" data-role="button" >Back</a>
                 <span data-role="view-title"></span>
                 <a data-align="right" data-role="button" href="#:back" data-bind="invisible: task.isNew, click: removeTask">Remove</a>
-                <a data-align="right" data-role="button" href="#:back" data-bind="visible: task.isNew, click: saveTask">Save</a>
+                <a data-align="right" data-role="button" data-bind="visible: task.isNew, click: saveTask">Save</a>
             </div>
         </header>
         
@@ -164,7 +164,7 @@
         
         <script id="categoryListItem" type="text/x-kendo-template">
             <a href="##taskList">${Name} 
-                #if (TotalCount) {# 
+                #if (TotalCount) { # 
                     (#:TotalCount#)
                 # } #
             </a>
@@ -188,9 +188,10 @@
     </div>
 
     <!-- settings -->
-    <div data-role="view" id="settings" data-model="viewModel" data-title="Setting">
+    <div data-role="view" id="settings" data-model="viewModel" data-title="Settings">
         <header data-role="header">
             <div data-role="navbar">
+                 <span data-role="view-title"></span>
                 <a data-align="left" data-role="backbutton">Back</a>
             </div>
         </header>
