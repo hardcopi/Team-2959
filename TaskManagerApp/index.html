@@ -233,6 +233,9 @@
                 
                 
                 newTask: function() {
+                    //since isNew is not bindable first we need reset the selected task
+                    //viewModel.set('task', undefined);
+                    
                     viewModel.set('task',viewModel.tasks.createItem());
                     if(viewModel.category) {
                         viewModel.task.set("Category_Id", viewModel.category.Id);
@@ -246,11 +249,13 @@
                         tasks.add(viewModel.task);
                     }
                     tasks.sync();
-                    //this is to support form-submit invocation
+                    //this is to support form-submit originated invocation
                     viewModel.app.navigate("#:back");
                 },    
                 
                 selectTask: function(e) {
+                    //since isNew is not bindable first we need reset the selected task
+                    viewModel.set('task', undefined);
                     viewModel.set('task', e.dataItem);
                 },
                 
@@ -266,11 +271,15 @@
                 
                                
                 resolveCategoryName: function(e) {
-                    var task = e instanceof kendo.data.Model ? e : e.task;
-                    var catId = task.get("Category_Id");
-                    return catId ? this.categories.get(catId).Name : "Uncategorized";
+                    var task = e instanceof kendo.data.Model ? e : e.task, catId, category;
+                    if ( task && (catId = task.get("Category_Id")) &&  
+                        (category =  viewModel.categories.get(catId)) ) {
+                        return category.Name;
+                    } 
+                    
+                    return catId || "Uncategorized";
                 },
-                
+                    
                 clearCategoryFilter: function() {
                     viewModel.set("category", null);
                 },

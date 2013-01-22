@@ -104,9 +104,8 @@
                                                      .filter(function (pd) { return $data.Container.resolveType(pd.type) === $data.EntitySet })
                                                      .map(function (pd) { return $data.Container.resolveType(pd.elementType) });
 
-                    };
+                    }
 
-                    console.dir(contextSetTypes);
                     var newInstanceOptions = {
                         entityBuilder: function (instance, members) {
                             members.forEach(function (memberInfo) {
@@ -161,7 +160,6 @@
                     $data.kendo.BaseModelType.fn.init.call(this, feed);
                     
                     jayInstance.propertyChanged.attach(function (obj, propinfo) {
-                        console.log("propchange", arguments);
                         var jay = this;
                         var newValue = propinfo.newValue;
                         if (!jay.changeFromKendo) {
@@ -551,7 +549,7 @@
         var self = this;
 
         var model = self.asKendoModel({
-            newInstanceCallback: function () { console.log("new instance: ", arguments) }
+            newInstanceCallback: function () {  }
         });
 
         ds = ds || {};
