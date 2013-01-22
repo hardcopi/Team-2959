@@ -60,7 +60,8 @@
         </ul>
         
     	<script id="taskListItem" type="text/x-kendo-template">
-            <a href="##taskEditor" class="km-listview-link" data-role="listview-link">${Todo} 
+            <a href="##taskEditor" class="km-listview-link" data-role="listview-link">
+                <span data-bind="{style: { color: resolveTaskColor }}">${Todo}</span>
                 <div data-bind="visible: appSettings.UseCategories">
                     <div style="font-size:8pt" data-bind="invisible:category, text: resolveCategoryName"></div>
                 </div>
@@ -104,13 +105,14 @@
             <h1 data-bind="text: task.Todo"></h1>
             <ul data-role="listview" data-style="inset">
                 <li>Todo:<input  data-bind="value: task.Todo" placeholder="What to do?" required type="text"/></li>
-                <li>Urgent: <input  type="checkbox" data-bind="checked: task.Urgent" data-role="switch" /></li>
-                <li>Completed: <input  type="checkbox" data-bind="checked: task.Completed" data-role="switch" /></li>
                 <li data-bind="visible: appSettings.UseCategories">
                     <a href="#categoryPicker" data-role="listview-link" 
                         data-bind="text: resolveCategoryName" class="km-listview-link">
                     </a>
                 </li>
+                <li>Urgent: <input  type="checkbox" data-bind="checked: task.Urgent" data-role="switch" /></li>
+                <li>Completed: <input  type="checkbox" data-bind="checked: task.Completed" data-role="switch" /></li>
+
                     
             </ul>
         </form>
@@ -269,7 +271,10 @@
                     viewModel.set("taskStatusFilter", e.sender.selectedIndex);
                 },
                 
-                               
+                resolveTaskColor: function(e) {
+                    return e.Urgent ? "red" : "black"
+                },
+                
                 resolveCategoryName: function(e) {
                     var task = e instanceof kendo.data.Model ? e : e.task, catId, category;
                     if ( task && (catId = task.get("Category_Id")) &&  
